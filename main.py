@@ -1,86 +1,95 @@
-print('Введите количество критериев')
-amount_of_kr = int(input())
-
-matrix_kr = [['_' for _ in range(amount_of_kr)] for _ in range(amount_of_kr)]
-for i in range(amount_of_kr):
-    matrix_kr[i][i] = 1.0
-
-print('Введите названия критериев через запятую')
-names_kr = input().split(', ')  # цена, размер, внешний вид
-
-for i in range(amount_of_kr - 1):
-    for j in range(1, amount_of_kr - i):
-        print(f'Сопоставьте критерий "{names_kr[i]}" и критерий "{names_kr[i + j]}"')
-        k = float(input())
-        matrix_kr[i + j][i] = k
-        matrix_kr[i][i + j] = 1 / k
-
-oksv_kr = []
-for i in matrix_kr:
-    n = 1
-    for j in i:
-        n *= j
-    oksv_kr.append(n ** 0.2)
-novp_kr = [i / sum(oksv_kr) for i in oksv_kr]
+def check_amount(n):
+    if not n.isdigit():
+        return False
+    if int(n) < 2:
+        return False
+    return int(n)
 
 
-print()
-for i in matrix_kr:
-    for j in i:
-        print(round(j, 2), end=f'{" " * (5 - len(str(round(j, 2))))}')
-    print('')
-print(f'''Оценки компонента собственного вектора: {[round(i, 2) for i in oksv_kr]}
-Нормализованные оценки вектора приоритета {[round(i, 4) for i in novp_kr]}''')
-print()
+def check_names(n, str1, str2):
+    names = []
+    for i in range(n):
+        print(f'Введите название {str1} {i + 1}')
+        name = input()
+        while name in names or name == '':
+            print(f'Такой {str2} уже существует или введена пустая строка. Введите другое название {str1} {i + 1}')
+            name = input()
+        names.append(name)
+    return names
 
-print('Введите количество объектов для сравнения')
-amount_of_obj = int(input())
 
-print('Введите названия сравниваемых объектов через запятую')
-names_obj = input().split(', ')  # цена, размер, внешний вид
+def fill_matrix(n, names, str1, str2):
+    matrix = [[1.0 for _ in range(n)] for _ in range(n)]
+    for i in range(n - 1):
+        for j in range(1, n - i):
+            print(f'Сравните {str1} "{names[i]}" и {str1} "{names[i + j]}" {str2}')
+            k = input()
+            while k.isalpha():
+                print(f'Введите целое или дробное число. Сравните {str1} "{names[i]}" и {str1} "{names[i + j]}"')
+                k = input()
+            matrix[i + j][i] = float(k)
+            matrix[i][i + j] = 1 / float(k)
+    return matrix
 
-all_novp = []
 
-for m in range(amount_of_kr):
-    matrix_obj = [['_' for _ in range(amount_of_obj)] for _ in range(amount_of_obj)]
-    for i in range(amount_of_obj):
-        matrix_obj[i][i] = 1.0
+def print_matrix(matrix):
+    for i in matrix:
+        for j in i:
+            print(round(j, 2), end=f'{" " * (5 - len(str(round(j, 2))))}')
+        print()
 
-    for i in range(amount_of_obj - 1):
-        for j in range(1, amount_of_obj - i):
-            print(f'Сопоставьте объект "{names_obj[i]}" и объект "{names_obj[i + j]}" по критерию "{names_kr[m]}"')
-            k = float(input())
-            matrix_obj[i + j][i] = k
-            matrix_obj[i][i + j] = 1 / k
 
-    oksv_obj = []
-    for i in matrix_obj:
+def oksv_and_novp(matrix):
+    oksv = []
+    for i in matrix:
         n = 1
         for j in i:
             n *= j
-        oksv_obj.append(n ** 0.2)
-    novp_obj = [i / sum(oksv_obj) for i in oksv_obj]
-    all_novp.append(novp_obj)
+        oksv.append(n ** 0.2)
+    novp = [i / sum(oksv) for i in oksv]
+    print(f'''Оценки компонента собственного вектора: {[round(i, 2) for i in oksv]}
+Нормализованные оценки вектора приоритета {[round(i, 4) for i in novp]}\n''')
+    return novp
 
-    print()
-    for i in matrix_obj:
-        for j in i:
-            print(round(j, 2), end=f'{" " * (5 - len(str(round(j, 2))))}')
-        print('')
-    print(f'''Оценки компонента собственного вектора: {[round(i, 2) for i in oksv_obj]}
-Нормализованные оценки вектора приоритета {[round(i, 4) for i in novp_obj]}''')
-    print()
 
-results = {}
-for i in range(amount_of_obj):
-    n = 0
-    for j in range(amount_of_kr):
-        print(round(all_novp[j][i], 7), end=' ')
-        n += all_novp[j][i] * novp_kr[j]
-    print(round(n, 9))
-    results[f'{names_obj[i]}'] = n
-print()
-result = sorted(results, key=results.get)[::-1]
-for i in result:
-    print(f'{i} - {round(results[i], 9)}')
-print()
+if __name__ == '__main__':
+    print('Введите количество критериев (больше одного)')
+    amount_of_kr = check_amount(input())
+    while not amount_of_kr:
+        print('Введено не допустимое значение. Ведите количество критериев (больше одного)')
+        amount_of_kr = check_amount(input())
+
+    print('Введите количество объектов для сравнения')
+    amount_of_obj = check_amount(input())
+    while not amount_of_obj:
+        print('Введено не допустимое значение. Ведите количество критериев (больше одного)')
+        amount_of_obj = check_amount(input())
+
+    names_kr = check_names(amount_of_kr, 'критерия', 'критерий')
+    matrix_kr = fill_matrix(amount_of_kr, names_kr, 'критерий', '')
+
+    print_matrix(matrix_kr)
+    novp_kr = oksv_and_novp(matrix_kr)
+
+    names_obj = check_names(amount_of_obj, 'объекта', 'объект')
+    all_novp = []
+
+    for i in range(amount_of_kr):
+        matrix_obj = fill_matrix(amount_of_obj, names_obj, 'объект', f'по критерию "{names_kr[i]}"')
+        print_matrix(matrix_obj)
+        novp_obj = oksv_and_novp(matrix_obj)
+        all_novp.append(novp_obj)
+
+    results = {}
+    for i in range(amount_of_obj):
+        n = 0
+        for j in range(amount_of_kr):
+            print(round(all_novp[j][i], 3), end=' ')
+            n += all_novp[j][i] * novp_kr[j]
+        print(round(n, 3))
+        results[f'{names_obj[i]}'] = n
+    print()
+    result = sorted(results, key=results.get)[::-1]
+    for i in result:
+        print(f'{i} - {round(results[i], 3)}')
+    print()
